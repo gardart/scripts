@@ -12,11 +12,13 @@
 #-------------------------- Configuration to Change ---------------------------------------------------#
 # Virtual Machine to migrate from vmware to Hyper-V
 $vmName="ts-mig-2008"
+$vmNetworkName="vlan401"
 
 # source vSphere cluster
 $sourceServer= "vcenter"
 
 # Destination Hyper-V host and path to store the vm
+$hyperVCluster = "hypervcluster"
 $hyperVServer = "hyperv-01"
 $tempVolume = "\\hyperv-01\C$\Migration\Hosts" # Or local storage if possible
 
@@ -29,7 +31,6 @@ $CSVVolume = "Volume5"
 #
 #-------------------------- Dont change anything below ------------------------------------------------#
 #
-#Start-Transcript
 
 # Import Modules
 Import-Module "C:\Program Files\Microsoft Virtual Machine Converter\MvmcCmdlet.psd1"
@@ -55,6 +56,7 @@ $convertedVM = New-MvmcVirtualMachineFromOvf -DestinationLiteralPath $machineDri
 #
 
 # Refresh VMM
+Get-SCVMHostCluster -Name $hyperVCluster | Read-SCVMHostCluster
 Get-SCVMHost -ComputerName $hyperVServer | Read-SCVMHost
 Read-SCVirtualMachine $vmName
  
@@ -62,4 +64,9 @@ Read-SCVirtualMachine $vmName
 $CSVPath = "C:\Clusterstorage\" + $CSVVolume
 Move-SCVirtualMachine -VM $vmName -VMHost $hyperVServer -HighlyAvailable $true -Path $CSVPath -UseLAN
 
-#Stop-Transcript  
+# Post Configure the converted virtual machine
+#
+# Network configuration
+$vm_VirtualNetworkAdapter = Get-SCVirtualNetworkAdapter -VMMServer $VMM -VM $vmName
+$vm_Network = Get-SCVMNetwork -Name $vmNetworkName
+Set-SCVirtualNetworkAdapter -VirtualNetworkAdapter $vm_VirtualNetworkAdapter -VMNetwork $vm_Network
