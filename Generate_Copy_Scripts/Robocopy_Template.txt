@@ -1,0 +1,39 @@
+@ECHO OFF
+SETLOCAL
+
+SET LOG_FILE="robocopy.log"
+
+::First run
+SET WHAT_TO_COPY=/E /ZB /COPYALL
+
+:: Second run
+:: SET WHAT_TO_COPY=/MIR /ZB /COPYALL
+::
+:: /COPYALL  :: COPY ALL file info (equivalent to /COPY:DATSOU)
+:: /S : Copy Subfolders.
+:: /E : Copy Subfolders, including Empty Subfolders.
+:: /ZB : Use restartable mode; if access denied use Backup mode
+:: /XO : eXclude Older - if destination file exists and is the same date or newer than the source - don't bother to overwrite it.
+
+SET OPTIONS=/R:3 /W:3 /NDL /NP /LOG+:%LOG_FILE% /TEE
+:: /R:n :: number of Retries
+:: /W:n :: Wait time between retries
+:: /LOG :: Output log file
+:: /NFL :: No file logging
+:: /NDL :: No dir logging
+:: /NP  :: Specifies that the progress of the copying operation (the number of files or directories copied so far) will not be displayed
+:: /ETA :: Shows the estimated time of arrival (ETA) of the copied files
+:: /TEE :: Writes the status output to the console window, as well as to the log file.
+
+:: Optional
+SET EXCLUDE_DIRS=/XD "$RECYCLE.BIN"
+SET EXCLUDE_FILES=/XF *_vti_* _desktop.ini *~$* Thumbs.db
+
+:: Multi-Threaded mode - Faster copy
+SET FAST_COPY=/MT:32
+:: ****************************************************************************************************
+
+:: Example
+:: robocopy Source_Path Destination_Path %WHAT_TO_COPY% %OPTIONS% %EXCLUDE_DIRS% %EXCLUDE_FILES% %FAST_COPY%
+
+:: Start backup
